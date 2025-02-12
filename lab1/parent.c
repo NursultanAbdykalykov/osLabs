@@ -19,8 +19,6 @@ int main() {
         perror("pipe");
         exit(EXIT_FAILURE);
     }
-
-    // Сообщение пользователю для ввода имени файла
     const char *msg = "Введите имя файла: ";
     bytes_written = write(STDOUT_FILENO, msg, strlen(msg));
     if (bytes_written == -1) {
@@ -28,7 +26,6 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // Чтение имени файла с консоли
     bytes_read = read(STDIN_FILENO, filename, sizeof(filename) - 1);
     if (bytes_read == -1) {
         perror("read");
@@ -49,10 +46,9 @@ int main() {
     }
 
     if (pid == 0) {
-        // Дочерний процесс
-        close(pipe1[1]);  // Закрываем запись в pipe для дочернего процесса
 
-        // Перенаправление стандартного ввода на pipe
+        close(pipe1[1]);
+
         dup2(pipe1[0], STDIN_FILENO);
         close(pipe1[0]);
 
@@ -64,22 +60,23 @@ int main() {
         // Родительский процесс
         close(pipe1[0]);  // Закрываем чтение из pipe для родительского процесса
 
-        // Сообщение для ввода чисел
         const char *msg2 = "Введите числа через пробел: ";
         write(STDOUT_FILENO, msg2, strlen(msg2));
 
-        // Чтение чисел с консоли
         bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
         if (bytes_read == -1) {
             perror("read");
             exit(EXIT_FAILURE);
         }
 
-        // Отправляем данные в pipe
-        write(pipe1[1], buffer, bytes_read);
-        close(pipe1[1]);  // Закрываем запись после отправки данных
+        if (write(pipe1[1], buffer, bytes_read) == -1) {
+            perror("write to pipe");
+            exit(EXIT_FAILURE);
+        }
 
-        // Ожидание завершения дочернего процесса
+        close(pipe1[1]); 
+
+
         wait(NULL);
     }
 

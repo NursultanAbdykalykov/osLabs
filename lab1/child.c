@@ -11,12 +11,11 @@ void convertStringToIntArray(const char *str, int intArray[], int *size) {
     int i = 0, num = 0;
     *size = 0;
     while (str[i] != '\n' && str[i] != '\0') {
-        // Пропускаем пробелы
+
         while (isspace(str[i])) {
             i++;
         }
 
-        // Считываем число
         if (isdigit(str[i])) {
             num = 0;
             while (isdigit(str[i])) {
@@ -56,24 +55,27 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    buffer[bytes_read] = '\0';  // Завершаем строку
+    buffer[bytes_read] = '\0'; 
 
     int array[BUFFER_SIZE];
     int size = 0;
     int sum = 0;
 
-    // Конвертируем строку в массив чисел
     convertStringToIntArray(buffer, array, &size);
 
-    // Вычисляем сумму
+
     for (int i = 0; i < size; ++i) {
         sum += array[i];
     }
 
-    // Записываем результат в файл
+    // Запись
     char output[128];
     int len = snprintf(output, sizeof(output), "Сумма: %d\n", sum);
-    write(file, output, len);
+    if (write(file, output, len) == -1) {
+        perror("write to file");
+        close(file);
+        exit(EXIT_FAILURE);
+    }
 
     close(file);
     return 0;
